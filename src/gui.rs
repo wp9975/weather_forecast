@@ -2,7 +2,7 @@ use gtk::prelude::*;
 use gtk::{Label, Window, WindowType};
 use std::collections::HashMap;
 use std::fs;
-use serde::Deserialize;
+use serde::{Deserialize};
 use reqwest::blocking::get;
 
 #[derive(Deserialize, Debug)]
@@ -12,8 +12,9 @@ struct WeatherData {
 }
 
 pub fn run() {
-    let api_key = fs::read_to_string("config.txt")
-        .expect("Something went wrong reading the file");
+    let api_key = fs::read_to_string("src/config.txt")
+    .expect("Something went wrong reading the file");
+
 
     gtk::init().expect("Failed to initialize GTK.");
 
@@ -31,12 +32,14 @@ pub fn run() {
 
     window.show_all();
 
-    let url = format!("http://api.openweathermap.org/data/2.5/weather?q=London,uk&APPID={}", api_key.trim());
-    let response: WeatherData = get(&url)
-        .unwrap()
-        .json()
-        .unwrap();
+    let response_body = get(format!("http://api.openweathermap.org/data/2.5/weather?q=London,uk&APPID={}", api_key))
+    .unwrap()
+    .text()
+    .unwrap();
 
+println!("Response body: {}", response_body);
+
+let response: WeatherData = serde_json::from_str(&response_body).unwrap();
     let weather = format!(
         "In London, it's currently {} degrees Celsius with {}.",
         response.main.get("temp").unwrap(),
